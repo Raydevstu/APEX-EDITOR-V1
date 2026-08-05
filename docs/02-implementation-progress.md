@@ -16,7 +16,10 @@
 | Design system (V2) | Complete | Tokenized OKLCH palette, Tailwind theme, UI primitives (`Button`, `IconButton`, `Dialog`, `Logo`), custom CodeMirror themes, bundled Inter + JetBrains Mono, brand assets + PWA icons, CSS motion with reduced-motion support; see `docs/06-design-system.md` | None |
 | Text tools | Complete | Worker, manager, drawer, pure utilities; edge-case tests | Add large-input performance test |
 | Snapshot history | Complete | Create/list/restore/close and latest diff Chromium E2E; cap/order/restore unit tests | Final manual release review |
-| Command palette | Complete | Header action, keyboard shortcut, component/E2E coverage, and focus-return browser QA | None |
+| Command palette + FTS | Complete | Header action, Ctrl/Cmd+K, title+body note search with snippets/keyboard nav, component + e2e coverage | None |
+| AI assistant (rewrite / summarize / ask notes) | Complete (opt-in) | SpaceXAI/xAI client, local key settings, palette AI group, selection rewrite + snapshot-before-apply, summarize insert, FTS-grounded ask + sources; unit tests in `src/ai/*` | Optional: local model presets, embeddings, e2e with mocked network |
+| Snip → text (OCR) | Phase 1 complete | Clipboard / paste / upload / screen capture, crop UI, offline Tesseract OCR, edit + insert; `src/snip/*` + `SnipModal`; Ctrl+Shift+S | Phase 2: AI vision accurate mode; Phase 3: image embed in notes |
+| Instant capture | Complete | Editor autofocus, `/?new=1` + PWA New note shortcut, hydrate-safe edits, crash-mirror + pagehide flush | None |
 | Encrypted sharing | Complete for local flow | AES-GCM generation, parsing, decrypt/import, round-trip/tamper tests | Security review and UX hardening |
 | Diff viewer | Complete | Current vs latest snapshot display and Chromium compare/close flow | Add optional line-level diff sophistication |
 | Unit tests | Complete for current scope | 24 tests across utilities, store, crypto, and overlay/header components | Add large-input performance tests if needed |
@@ -29,8 +32,8 @@
 
 - `pnpm build`: passes; CodeMirror chunk advisory remains (main bundle ~870 kB / 291 kB gzip).
 - `pnpm lint`: passes.
-- `pnpm test`: passes, 5 files / 24 tests.
-- `pnpm test:e2e`: passes — 69 passed / 3 skipped across Chromium, WebKit, and Firefox (72 tests per browser). The 3 WebKit skips are documented Playwright engine limitations (offline reload while context offline ×2, post-modal focus tracking ×1); those flows pass in Chromium and Firefox.
+- `pnpm test`: passes, 6 files / 34 tests (includes `searchNotes` + hydrate/flush store cases).
+- `pnpm test:e2e`: passes capture + search specs; full matrix Chromium/WebKit/Firefox. The 3 WebKit skips are documented Playwright engine limitations (offline reload while context offline ×2, post-modal focus tracking ×1); those flows pass in Chromium and Firefox.
 - `pnpm exec playwright install chromium`: completed successfully.
 - Axe `@axe-core/playwright` WCAG A/AA scan reports no serious/critical violations on: main surface, command palette, text tools, snapshot history, encrypted sharing, latest-snapshot diff (dark), and main + share modal (light). Entrance animations settle before each scan to avoid mid-fade alpha sampling.
 - `pnpm audit` (prod + full): no known vulnerabilities.
@@ -55,8 +58,11 @@
 
 ## 4. Recommended next implementation sequence
 
-1. Run a formal external screen-reader pass (NVDA/VoiceOver) and record it.
-2. If the app is deployed to a host with network latency, re-measure startup and revisit CodeMirror code splitting.
+1. Parked AI follow-ups (lower daily impact): auto-title, tag suggestions, daily brief, full agents / multi-step tools.
+2. Rank 3 MVP org: notebooks/folders + tags (competitive top-5).
+3. Rank 5: optional multi-device sync (after local org is solid).
+4. Run a formal external screen-reader pass (NVDA/VoiceOver) and record it.
+5. If the app is deployed to a host with network latency, re-measure startup and revisit CodeMirror code splitting.
 
 ## 5. Release decision
 

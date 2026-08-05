@@ -19,16 +19,17 @@ vi.mock('idb-keyval', () => ({
   set: vi.fn(async (key: string, value: unknown) => { memory.set(key, value) }),
 }))
 
-import { useEditorStore } from './useEditorStore'
+import { resetEditorSessionFlags, useEditorStore } from './useEditorStore'
 
 describe('editor store', () => {
   beforeEach(() => {
     memory.clear()
     themeStore.clear()
+    resetEditorSessionFlags()
     useEditorStore.setState({
       tabs: [{ id: 'tab-1', title: 'Note', content: '', updatedAt: 1 }],
       activeTabId: 'tab-1', theme: 'dark', isZenMode: false, snapshots: [],
-      isSaving: false, isCommandPaletteOpen: false,
+      isSaving: false, isHydrated: true, isCommandPaletteOpen: false,
     })
   })
 
@@ -81,5 +82,32 @@ describe('editor store', () => {
     await useEditorStore.getState().loadPersistentState()
     expect(useEditorStore.getState().tabs[0]).toMatchObject({ title: 'Legacy', content: 'old content' })
     expect(memory.get('apex_tabs_state')).toMatchObject({ version: 1 })
+  })
+
+  it('does not clobber in-session edits when hydrate resolves late', async () => {
+    resetEditorSessionFlags()
+    useEditorStore.setState({
+      tabs: [{ id: 'seed', title: 'Untitled Note', content: '', updatedAt: 1 }],
+      activeTabId: 'seed',
+      isHydrated: false,
+    })
+    memory.set('apex_tabs_state', {
+      version: 1,
+      tabs: [{ id: 'persisted', title: 'Old', content: 'from disk', updatedAt: 1 }],
+      activeTabId: 'persisted',
+    })
+    useEditorStore.getState().setContent('typed before hydrate')
+    await useEditorStore.getState().loadPersistentState()
+    expect(useEditorStore.getState().tabs[0].content).toBe('typed before hydrate')
+    expect(useEditorStore.getState().isHydrated).toBe(true)
+  })
+
+  it('flushes pending saves immediately', async () => {
+    useEditorStore.getState().setContent('flush me')
+    await useEditorStore.getState().flushSave()
+    expect(memory.get('apex_tabs_state')).toMatchObject({
+      tabs: [expect.objectContaining({ content: 'flush me' })],
+    })
+    expect(useEditorStore.getState().isSaving).toBe(false)
   })
 })

@@ -97,7 +97,7 @@ test('opens command palette and runs text tools', async ({ page }) => {
   await page.keyboard.type('{"b": 1}\n\n')
   await page.getByTitle('Command palette').click({ force: true })
   await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible()
-  await page.getByRole('button', { name: 'Open text tools' }).click()
+  await page.getByRole('option', { name: 'Open text tools' }).click()
   await page.getByRole('button', { name: 'Format JSON' }).click()
   await expect(page.locator('.cm-content')).toContainText('"b": 1')
   await page.keyboard.press('Escape')

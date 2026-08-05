@@ -20,3 +20,11 @@ export interface PersistedTabsState {
   tabs: Tab[]
   activeTabId: string
 }
+
+export interface SearchHit {
+  tabId: string
+  title: string
+  snippet: string
+  match: 'title' | 'body' | 'both'
+  score: number
+}

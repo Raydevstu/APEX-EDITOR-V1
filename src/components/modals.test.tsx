@@ -21,7 +21,7 @@ describe('overlay components', () => {
     useEditorStore.setState({
       tabs: [baseTab], activeTabId: 'tab-1', theme: 'dark', isZenMode: false,
       snapshots: [{ id: 'snapshot-1', tabId: 'tab-1', title: 'Release note', content: 'saved content', timestamp: 1 }],
-      isSaving: false, isCommandPaletteOpen: true,
+      isSaving: false, isHydrated: true, isCommandPaletteOpen: true,
     })
   })
 
@@ -56,8 +56,17 @@ describe('overlay components', () => {
 
   it('opens the requested command action and closes the palette', () => {
     const onTools = vi.fn()
-    render(<CommandPalette onTools={onTools} onSnapshots={vi.fn()} returnFocusRef={createRef()} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open text tools' }))
+    render(
+      <CommandPalette
+        onTools={onTools}
+        onSnapshots={vi.fn()}
+        onAi={vi.fn()}
+        onAiSettings={vi.fn()}
+        onSnip={vi.fn()}
+        returnFocusRef={createRef()}
+      />,
+    )
+    fireEvent.click(screen.getByRole('option', { name: 'Open text tools' }))
     expect(onTools).toHaveBeenCalledOnce()
     expect(useEditorStore.getState().isCommandPaletteOpen).toBe(false)
   })
@@ -65,18 +74,120 @@ describe('overlay components', () => {
   it('returns focus to the opener when the command palette closes', async () => {
     const onTools = vi.fn()
     const returnFocusRef = createRef<HTMLElement>()
-    render(<CommandPalette onTools={onTools} onSnapshots={vi.fn()} returnFocusRef={returnFocusRef} />)
-    const opener = screen.getByRole('button', { name: 'Open text tools' })
+    const opener = document.createElement('button')
+    opener.textContent = 'Open palette'
+    document.body.appendChild(opener)
     returnFocusRef.current = opener
     opener.focus()
+    render(
+      <CommandPalette
+        onTools={onTools}
+        onSnapshots={vi.fn()}
+        onAi={vi.fn()}
+        onAiSettings={vi.fn()}
+        onSnip={vi.fn()}
+        returnFocusRef={returnFocusRef}
+      />,
+    )
     fireEvent.keyDown(window, { key: 'Escape' })
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(document.activeElement).toBe(opener)
+    opener.remove()
+  })
+
+  it('searches notes by body and opens the hit with Enter', () => {
+    useEditorStore.setState({
+      tabs: [
+        baseTab,
+        { id: 'tab-2', title: 'Other', content: 'unique-zebra-token in the body', updatedAt: 2 },
+      ],
+      activeTabId: 'tab-1',
+      isCommandPaletteOpen: true,
+    })
+    render(
+      <CommandPalette
+        onTools={vi.fn()}
+        onSnapshots={vi.fn()}
+        onAi={vi.fn()}
+        onAiSettings={vi.fn()}
+        onSnip={vi.fn()}
+        returnFocusRef={createRef()}
+      />,
+    )
+    const input = screen.getByLabelText('Search notes and commands')
+    fireEvent.change(input, { target: { value: 'unique-zebra-token' } })
+    expect(screen.getByRole('option', { name: /Other/i })).toBeTruthy()
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(useEditorStore.getState().activeTabId).toBe('tab-2')
+    expect(useEditorStore.getState().isCommandPaletteOpen).toBe(false)
+  })
+
+  it('moves the selection with arrow keys', () => {
+    render(
+      <CommandPalette
+        onTools={vi.fn()}
+        onSnapshots={vi.fn()}
+        onAi={vi.fn()}
+        onAiSettings={vi.fn()}
+        onSnip={vi.fn()}
+        returnFocusRef={createRef()}
+      />,
+    )
+    const input = screen.getByLabelText('Search notes and commands')
+    const options = screen.getAllByRole('option')
+    expect(options[0].getAttribute('aria-selected')).toBe('true')
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    expect(screen.getAllByRole('option')[1].getAttribute('aria-selected')).toBe('true')
+  })
+
+  it('runs AI rewrite from the palette', () => {
+    const onAi = vi.fn()
+    render(
+      <CommandPalette
+        onTools={vi.fn()}
+        onSnapshots={vi.fn()}
+        onAi={onAi}
+        onAiSettings={vi.fn()}
+        onSnip={vi.fn()}
+        returnFocusRef={createRef()}
+      />,
+    )
+    fireEvent.click(screen.getByRole('option', { name: /AI: Fix grammar/i }))
+    expect(onAi).toHaveBeenCalledWith({ kind: 'rewrite', mode: 'grammar' })
+    expect(useEditorStore.getState().isCommandPaletteOpen).toBe(false)
+  })
+
+  it('opens ask-notes for ? queries', () => {
+    const onAi = vi.fn()
+    render(
+      <CommandPalette
+        onTools={vi.fn()}
+        onSnapshots={vi.fn()}
+        onAi={onAi}
+        onAiSettings={vi.fn()}
+        onSnip={vi.fn()}
+        returnFocusRef={createRef()}
+      />,
+    )
+    const input = screen.getByLabelText('Search notes and commands')
+    fireEvent.change(input, { target: { value: '?shipping timeline' } })
+    fireEvent.click(screen.getByRole('option', { name: /Ask notes: shipping timeline/i }))
+    expect(onAi).toHaveBeenCalledWith({ kind: 'ask', question: 'shipping timeline' })
   })
 
   it('wires the header diff control to its callback', () => {
     const onDiff = vi.fn()
-    render(<Header onSnapshot={vi.fn()} onTools={vi.fn()} onShare={vi.fn()} onDiff={onDiff} onCommandPalette={vi.fn()} />)
+    render(
+      <Header
+        onSnapshot={vi.fn()}
+        onTools={vi.fn()}
+        onShare={vi.fn()}
+        onDiff={onDiff}
+        onCommandPalette={vi.fn()}
+        onAi={vi.fn()}
+        onSnip={vi.fn()}
+      />,
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Compare latest snapshot' }))
     expect(onDiff).toHaveBeenCalledOnce()
   })

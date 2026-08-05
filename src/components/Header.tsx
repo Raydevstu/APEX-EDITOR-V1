@@ -1,4 +1,4 @@
-import { EyeOff, History, Moon, PanelRight, Share2, Sun, Terminal, GitCompare } from 'lucide-react'
+import { EyeOff, History, Moon, PanelRight, Scissors, Share2, Sparkles, Sun, Terminal, GitCompare } from 'lucide-react'
 import { useEditorStore } from '../store/useEditorStore'
 import { IconButton } from '../ui/IconButton'
 import { Logo } from '../ui/Logo'
@@ -9,12 +9,16 @@ export function Header({
   onShare,
   onDiff,
   onCommandPalette,
+  onAi,
+  onSnip,
 }: {
   onSnapshot: () => void
   onTools: () => void
   onShare: () => void
   onDiff: () => void
   onCommandPalette: () => void
+  onAi: () => void
+  onSnip: () => void
 }) {
   const { tabs, activeTabId, setTitle, theme, setTheme, toggleZenMode, isZenMode, isSaving, takeSnapshot } = useEditorStore()
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0]
@@ -60,6 +64,8 @@ export function Header({
         <IconButton label="Text tools" icon={PanelRight} onClick={onTools} />
         <IconButton label="Encrypted sharing" icon={Share2} onClick={onShare} />
         <IconButton label="Compare latest snapshot" icon={GitCompare} onClick={onDiff} />
+        <IconButton label="Snip to text" icon={Scissors} onClick={onSnip} title="Snip screenshot → text" />
+        <IconButton label="AI assistant" icon={Sparkles} onClick={onAi} title="AI: Ask your notes" />
         <div className="mx-1 h-5 w-px bg-hairline" aria-hidden="true" />
         <IconButton label="Command palette" icon={Terminal} onClick={onCommandPalette} />
         <IconButton label="Zen mode" icon={EyeOff} onClick={toggleZenMode} />

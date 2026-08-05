@@ -30,12 +30,16 @@ It supports multiple tabs, markdown/JSON editing with syntax highlighting, text-
 | Feature | What it does |
 |---|---|
 | Multi-tab editing | Create, switch, and close notes in one window. Each tab has its own title, content, and save state. |
-| Automatic persistence | Every change is saved locally after a short debounce. Content survives reloads and offline use. |
+| Instant capture | Editor autofocuses on open so you can type immediately. `/?new=1` (and the PWA “New note” shortcut) opens a fresh note. |
+| Automatic persistence | Changes debounce to IndexedDB (500ms) and mirror synchronously to localStorage; `pagehide` / tab-hide flushes pending writes. Content survives reloads and offline use. |
+| Full-text search | Ctrl/Cmd+K searches note titles and bodies with instant results, snippets, and ↑/↓/Enter navigation (plus commands). |
 | Markdown & JSON editing | CodeMirror 6 with syntax highlighting — switches to JSON mode automatically when the content looks like JSON. |
 | Text tools | Format JSON, trim empty lines, dedupe lines, and align CSV columns — heavy work runs in a web worker off the main thread. |
 | Snapshot history | Capture versions of a note and restore any of them. Capped at 50 snapshots total, listed per tab. |
 | Diff viewer | Compare the active tab's latest snapshot against its current content, side-by-side with changed lines highlighted. |
-| Command palette | Searchable quick actions (new note, open tools, open snapshots) via a keyboard shortcut. |
+| Command palette | Search notes and run quick actions (new note, open tools, open snapshots, AI) via Ctrl/Cmd+K. |
+| AI assistant (opt-in) | Rewrite selection, summarize note, and ask your notes (answer + jump to sources) via SpaceXAI/xAI. Requires a user-provided API key; core editing stays offline. |
+| Snip → text (OCR) | Capture/paste/upload a screenshot, crop the region, convert offline with Tesseract, edit, then insert into the note. Shortcut: Ctrl/Cmd+Shift+S. |
 | Encrypted sharing | Generate a self-contained `payload#key` link with AES-GCM encryption and import a shared note back. |
 | Zen mode | Hide the header and tab bar for distraction-free writing. |
 | Light / dark themes | One-click toggle across the whole app (header, tabs, editor, overlays). |
@@ -138,9 +142,36 @@ pnpm test:e2e
 | Panel-right icon | **Text tools** — open the tool drawer |
 | Share icon | **Encrypted sharing** — generate/import an encrypted link |
 | Git-compare icon | **Compare latest snapshot** — open the diff viewer |
+| Scissors icon | **Snip → text** — screenshot OCR (Ctrl/Cmd+Shift+S) |
+| Sparkles icon | **AI assistant** — open “Ask your notes” (also available in ⌘K) |
 | Terminal icon | **Command palette** — searchable quick actions |
+
+### Snip → text
+
+1. **Win+Shift+S** (or any screenshot to clipboard) → focus ApexPad → **Ctrl+V**, or open **Snip** from the header / ⌘K / **Ctrl+Shift+S**.
+2. Optionally **drag a crop** around the text.
+3. **Convert to text** (offline Tesseract OCR — first run may download the English language data).
+4. Edit the result → **Insert into note** (snapshot taken first) or **Copy text**.
+
+Also supports **Screen / window** capture (browser picker) and image upload / drag-drop. AI vision “Accurate” mode is planned later; Phase 1 is fast local OCR only.
 | Eye-off icon | **Zen mode** — hide header and tab bar |
 | Sun/Moon icon | **Toggle theme** — switch light/dark |
+
+### AI assistant
+
+AI is **optional** and never required for editing, search, or offline use.
+
+1. Open **⌘K → AI settings…** (or run any AI command once).
+2. Paste an [xAI API key](https://console.x.ai) (SpaceXAI / `https://api.x.ai/v1`). The key is stored only in this browser’s `localStorage`.
+3. Use the palette:
+
+| Command | What it does |
+|---|---|
+| **AI: Fix grammar / Make clearer / Make shorter / Professional tone** | Rewrites the current selection (or whole note). Review → **Replace in note** (auto-snapshot first). |
+| **AI: Summarize note / Key points / Action items** | Summarizes the active note. **Insert below** as a markdown section. |
+| **AI: Ask your notes…** | Question → grounded answer from FTS hits + clickable source notes. Shortcut: type `?your question` in ⌘K. |
+
+Later you can point **Base URL** at a local OpenAI-compatible server (e.g. Ollama) without changing the app.
 
 ### Text tools
 
@@ -173,12 +204,12 @@ The oldest snapshots are pruned at 50 total. Only non-empty notes can be snapsho
 3. The **Latest snapshot diff** dialog shows the snapshot (baseline) vs. the current content, line by line. Changed lines are highlighted in amber with `-` / `+` markers.
 4. Close with **Escape** or the **×** button.
 
-### Command palette
+### Command palette & full-text search
 
 - Open with **Ctrl+K** (Windows/Linux) or **Cmd+K** (macOS), the **Terminal** button, or the **⌘K commands** button at the bottom-right.
-- Type to filter commands: **New note**, **Open text tools**, **Open snapshots**.
-- Press **Enter**/**click** to run a command; **Escape** closes the palette. Focus returns to wherever it was before you opened it.
-- Clicking the backdrop also closes it.
+- Type to search **note titles and bodies** (instant results with snippets) and to filter commands: **New note**, **Open text tools**, **Open snapshots**.
+- Use **↑ / ↓** to move, **Enter** to open a note or run a command; **Escape** closes the palette.
+- Opening a note or **New note** focuses the editor for immediate typing.
 
 ### Zen mode & themes
 
@@ -191,7 +222,8 @@ The oldest snapshots are pruned at 50 total. Only non-empty notes can be snapsho
 
 | Shortcut | Action |
 |---|---|
-| `Ctrl+K` / `Cmd+K` | Open the command palette |
+| `Ctrl+K` / `Cmd+K` | Open search / command palette |
+| `↑` / `↓` / `Enter` | Navigate and run palette results |
 | `Ctrl+T` / `Cmd+T` | Create a new tab |
 | `Ctrl+W` / `Cmd+W` | Close the active tab |
 | `Escape` | Close any open dialog / palette |
@@ -200,8 +232,9 @@ The oldest snapshots are pruned at 50 total. Only non-empty notes can be snapsho
 
 ## Data, privacy & offline
 
-- **Storage:** all notes, titles, and snapshots live in your browser's **IndexedDB** under local keys (`apex_tabs_state`, `apex_snapshots`). Nothing is uploaded anywhere.
-- **Autosave:** changes are debounced by 500 ms; the header shows "Saving..." while a write is pending and "Saved locally" when it's done.
+- **Storage:** all notes, titles, and snapshots live in your browser's **IndexedDB** under local keys (`apex_tabs_state`, `apex_snapshots`), with a synchronous localStorage crash mirror (`apex_tabs_crash`) so a hard reload mid-debounce keeps content. Nothing is uploaded anywhere.
+- **Autosave:** changes debounce to IDB by 500 ms and flush immediately on tab hide / page unload; the header shows "Saving..." while a write is pending and "Saved locally" when it's done.
+- **Instant capture:** the editor autofocuses on open. Visit `/?new=1` or use the installed PWA **New note** shortcut for a fresh tab.
 - **Offline:** after the app has loaded once, the service worker caches the app shell. Reloading without a network still works, and your notes are read from IndexedDB.
 - **Legacy migration:** a previous single-document record (`apex_active_doc`) is migrated into a tab automatically when no multi-tab state exists yet.
 - Clearing browser site data deletes your notes — export anything important via encrypted sharing before doing so.

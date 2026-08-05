@@ -167,7 +167,7 @@ Legend: ✅ Implemented · ⚠️ Partial/Variant · ❌ Not implemented
 | B2.8 | Inspector: Backlinks graph | ❌ | absent |
 | B2.9 | Inspector: Document stats (words/read time) | ❌ | stats only in bottom status bar |
 | B2.10 | Bottom Status Bar (LN/COL, UTF-8, branch) | ❌ | bottom bar shows lines/words/chars + tab id, no LN/COL/UTF-8/branch |
-| B2.11 | Global search trigger in header (Search or command…) | ⚠️ | no search field; only ⌘K button |
+| B2.11 | Global search trigger in header (Search or command…) | ✅ | ⌘K / header Terminal opens palette; full-text title+body note search + commands with ↑↓ Enter |
 | B2.12 | Floating selection toolbar (Bold/Italic/Code/Link/AI) | ❌ | absent |
 | B2.13 | Block-based drag handles (⋮⋮) | ❌ | absent |
 | B2.14 | Contextual Slash (/) command menu | ❌ | absent |
@@ -193,7 +193,7 @@ Legend: ✅ Implemented · ⚠️ Partial/Variant · ❌ Not implemented
 | B4.1 | `cmdk` dependency | ❌ | not installed (custom palette built) |
 | B4.2 | ⌘K/⌃K global toggle | ✅ | App handler |
 | B4.3 | Searchable command list | ✅ | custom filter |
-| B4.4 | AI Assistant group (Fix Grammar, Summary) | ❌ | no AI commands |
+| B4.4 | AI Assistant group (Fix Grammar, Summary) | ✅ | palette AI group: rewrite modes, summarize, ask notes, settings |
 | B4.5 | Convert Block group (H1/H2/H3, code, lists, quote) | ❌ | absent |
 | B4.6 | Inline Formatting group (bold/italic/clear) | ❌ | absent |
 | B4.7 | Document ops (New Note, Copy raw text) | ⚠️ | New note present; copy raw text absent |
