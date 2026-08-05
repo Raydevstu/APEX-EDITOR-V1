@@ -74,16 +74,15 @@ All four prior release-gate risks are **closed** (2026-08-05):
 
 Remaining non-blocking notes:
 
-- Browser matrix is Chromium-only.
+- 3 WebKit e2e tests are skipped due to Playwright driver limitations (offline reload while context offline, post-modal focus tracking); the flows pass in Chromium and Firefox.
 - No CI pipeline or deployment target is currently documented in the repository.
 
 ## 6. First actions for receiving engineer
 
 1. Read this document and the progress register.
-2. Broaden the browser matrix (WebKit + Firefox) before a wider public release.
-3. Run the recommended external screen-reader validation (NVDA/VoiceOver) and record it.
-4. If deployed to a remote host, re-measure startup and revisit CodeMirror code splitting.
-5. Keep the QA record and release checklist updated with any new evidence.
+2. Run the recommended external screen-reader validation (NVDA/VoiceOver) and record it.
+3. If deployed to a remote host, re-measure startup and revisit CodeMirror code splitting.
+4. Keep the QA record and release checklist updated with any new evidence.
 
 ## 7. Definition of done for handoff
 

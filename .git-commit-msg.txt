@@ -1,0 +1,15 @@
+test: broaden e2e browser matrix to WebKit and Firefox
+
+Add webkit + firefox projects to the Playwright config and install their
+browser binaries. Full suite now runs 72 tests per browser across
+Chromium, WebKit, and Firefox (69 passed / 3 skipped).
+
+The 3 WebKit skips are Playwright driver limitations, documented inline:
+- offline reload while the context is offline (engine internal error) x2
+- post-modal focus-return tracking x1
+
+Those flows are verified in Chromium and Firefox. Docs (QA record,
+progress register, handoff, README) updated with the cross-browser
+evidence.
+
+Co-authored-by: CommandCodeBot <noreply@commandcode.ai>

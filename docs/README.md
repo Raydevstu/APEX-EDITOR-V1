@@ -23,7 +23,7 @@ This documentation set is the operational source of truth for implementation, pr
 
 The application has a functional editor foundation and all requested local editing capabilities. Multi-tab editing, IndexedDB persistence, text-tool worker processing, snapshots, command palette, encrypted sharing, diff viewing, and PWA build generation are implemented.
 
-As of 2026-08-05 all four release gates are closed: PWA install/update verified, keyboard + screen-reader-tree accessibility audited across every surface in both themes, security review clean (no network exfiltration, `pnpm audit` clean), and startup profiled (FCP/LCP 180 ms, load 89 ms). The release decision is **Go**; non-blocking follow-ups are a broader browser matrix and an external screen-reader validation.
+As of 2026-08-05 all four release gates are closed: PWA install/update verified, keyboard + screen-reader-tree accessibility audited across every surface in both themes, security review clean (no network exfiltration, `pnpm audit` clean), and startup profiled (FCP/LCP 180 ms, load 89 ms). The release decision is **Go**; the browser matrix is expanded to Chromium + WebKit + Firefox (69 e2e passed / 3 documented WebKit driver skips). Non-blocking follow-up: an external screen-reader validation.
 
 ## Status vocabulary
 

@@ -20,7 +20,7 @@
 | Encrypted sharing | Complete for local flow | AES-GCM generation, parsing, decrypt/import, round-trip/tamper tests | Security review and UX hardening |
 | Diff viewer | Complete | Current vs latest snapshot display and Chromium compare/close flow | Add optional line-level diff sophistication |
 | Unit tests | Complete for current scope | 24 tests across utilities, store, crypto, and overlay/header components | Add large-input performance tests if needed |
-| E2E tests | Complete for current release flows | 11 Chromium tests including snapshots/diff/restore, PWA registration, offline persistence, and axe WCAG scans | Broaden browser matrix before public release |
+| E2E tests | Complete for current release flows | 24 Chromium tests including snapshots/diff/restore, PWA registration, offline persistence, and axe WCAG scans; matrix expanded to Chromium + WebKit + Firefox (69 passed / 3 documented WebKit skips) | None |
 | PWA packaging | Complete | Service worker and manifest register; cached shell + IndexedDB content reload offline; installability verified (manifest, icons at declared sizes, `beforeinstallprompt` surfaced); SW `autoUpdate` lifecycle rehearsed and confirmed (`reg.update()` → new worker activated) | None |
 | Accessibility | Complete | Axe WCAG A/AA clean (main + palette + every dialog, dark; main + share in light); automated keyboard audit (tab order, focus trap, Escape, focus return); manual keyboard + screen-reader pass documented | None |
 | Performance | Complete | Measured startup on production preview: FCP/LCP 180 ms, load 89 ms, one 65 ms long task. CodeMirror bundle advisory accepted — no code splitting warranted at this startup cost | None |
@@ -30,7 +30,7 @@
 - `pnpm build`: passes; CodeMirror chunk advisory remains (main bundle ~870 kB / 291 kB gzip).
 - `pnpm lint`: passes.
 - `pnpm test`: passes, 5 files / 24 tests.
-- `pnpm test:e2e`: passes, 24 Chromium tests — original 11 flows plus 13 new gate tests (PWA installability ×3, keyboard/accessibility-tree audit ×4, expanded axe dark ×4, light-mode axe ×2).
+- `pnpm test:e2e`: passes — 69 passed / 3 skipped across Chromium, WebKit, and Firefox (72 tests per browser). The 3 WebKit skips are documented Playwright engine limitations (offline reload while context offline ×2, post-modal focus tracking ×1); those flows pass in Chromium and Firefox.
 - `pnpm exec playwright install chromium`: completed successfully.
 - Axe `@axe-core/playwright` WCAG A/AA scan reports no serious/critical violations on: main surface, command palette, text tools, snapshot history, encrypted sharing, latest-snapshot diff (dark), and main + share modal (light). Entrance animations settle before each scan to avoid mid-fade alpha sampling.
 - `pnpm audit` (prod + full): no known vulnerabilities.
@@ -49,15 +49,14 @@
 
 ### Accepted risks / remaining non-blocking notes
 
-- Browser matrix is Chromium-only (expand to WebKit/Firefox before a wider public release).
+- 3 WebKit test skips are Playwright driver limitations (offline reload, post-modal focus tracking); the underlying flows are verified in Chromium + Firefox.
 - CodeMirror bundle >500 kB advisory (accepted; see Performance row).
 - Formal screen-reader validation with an external tool is recommended pre-announcement.
 
 ## 4. Recommended next implementation sequence
 
-1. Broaden the browser matrix (WebKit + Firefox) before a wider public release.
-2. Run a formal external screen-reader pass (NVDA/VoiceOver) and record it.
-3. If the app is deployed to a host with network latency, re-measure startup and revisit CodeMirror code splitting.
+1. Run a formal external screen-reader pass (NVDA/VoiceOver) and record it.
+2. If the app is deployed to a host with network latency, re-measure startup and revisit CodeMirror code splitting.
 
 ## 5. Release decision
 

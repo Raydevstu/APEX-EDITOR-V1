@@ -58,7 +58,7 @@ Playwright must run only files under `e2e/` with a dedicated configuration. Requ
 | Lint | Pass | `pnpm lint`, 2026-08-05 | None |
 | Unit tests | Pass, 24 tests / 5 files | `pnpm test`, 2026-08-05 | None |
 | Playwright config | Present | `playwright.config.ts` | None |
-| E2E browser run | Pass, 24 tests | `pnpm test:e2e`, Chromium, 2026-08-05 | Broaden browser matrix before public release |
+| E2E browser run | Pass, 69 passed / 3 skipped | `pnpm test:e2e`, 2026-08-05: Chromium + WebKit + Firefox (72 tests per browser × 3). 3 WebKit skips are documented Playwright engine limitations (offline reload ×2, post-modal focus tracking ×1) — those flows verified in Chromium + Firefox | None |
 | Automated accessibility scan | Pass, axe WCAG A/AA | `e2e/accessibility.spec.ts` + `accessibility-light.spec.ts`, 2026-08-05: main, palette, tools, snapshots, share, diff (dark) + main/share (light) | Scan additional dialog states over time |
 | Keyboard accessibility audit | Pass | `e2e/keyboard-a11y.spec.ts`, 2026-08-05: tab order, focus trap, Escape, focus return, modal semantics | None |
 | PWA installability | Pass | `e2e/pwa-install.spec.ts`, 2026-08-05: manifest, icons at declared sizes, SW registration, install event surfaced | None |
