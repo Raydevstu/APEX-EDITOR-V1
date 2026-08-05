@@ -1,4 +1,17 @@
+// @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+// The store reads the persisted theme from localStorage at creation time.
+const themeStore = new Map<string, string>()
+Object.defineProperty(globalThis, 'localStorage', {
+  value: {
+    getItem: (key: string) => themeStore.get(key) ?? null,
+    setItem: (key: string, value: string) => { themeStore.set(key, value) },
+    removeItem: (key: string) => { themeStore.delete(key) },
+    clear: () => { themeStore.clear() },
+  },
+  configurable: true,
+})
 
 const memory = new Map<string, unknown>()
 vi.mock('idb-keyval', () => ({
@@ -11,6 +24,7 @@ import { useEditorStore } from './useEditorStore'
 describe('editor store', () => {
   beforeEach(() => {
     memory.clear()
+    themeStore.clear()
     useEditorStore.setState({
       tabs: [{ id: 'tab-1', title: 'Note', content: '', updatedAt: 1 }],
       activeTabId: 'tab-1', theme: 'dark', isZenMode: false, snapshots: [],

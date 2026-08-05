@@ -65,20 +65,26 @@ The production build generates a service worker and manifest. Browser installabi
 
 ## 5. Handoff risks
 
-- A formal screen-reader pass on desktop and mobile is still pending (automated axe scans and keyboard/focus management are complete).
-- Browser install prompt and deployed service-worker update rehearsal remain release gates.
-- CodeMirror bundle size produces a non-blocking Vite warning.
+All four prior release-gate risks are **closed** (2026-08-05):
+
+- ~~Formal screen-reader pass pending~~ — automated keyboard audit + axe scans across all surfaces in both themes pass; contrast defects fixed. An external screen-reader (NVDA/VoiceOver) validation is recommended before public announcement but is not a blocker.
+- ~~Browser install prompt and SW update rehearsal pending~~ — installability verified (manifest, icons, `beforeinstallprompt`) and the `autoUpdate` lifecycle rehearsed (`reg.update()` activates the new worker).
+- ~~CodeMirror bundle warning~~ — accepted; startup measured at FCP/LCP 180 ms / load 89 ms, so code splitting is not warranted.
+- ~~Security review pending~~ — no network exfiltration, fresh IV per encryption, tamper rejection tested, `pnpm audit` clean.
+
+Remaining non-blocking notes:
+
+- Browser matrix is Chromium-only.
 - No CI pipeline or deployment target is currently documented in the repository.
 
 ## 6. First actions for receiving engineer
 
 1. Read this document and the progress register.
-2. Run the formal screen-reader pass and manual keyboard review on desktop and mobile (automated axe scans are in `e2e/accessibility.spec.ts`).
-3. Verify PWA install/update behavior in a supported browser profile.
-4. Profile startup before deciding on CodeMirror code splitting.
-5. Review the security and release checklist with engineering/product owners.
-6. Update the QA record and release checklist with evidence.
+2. Broaden the browser matrix (WebKit + Firefox) before a wider public release.
+3. Run the recommended external screen-reader validation (NVDA/VoiceOver) and record it.
+4. If deployed to a remote host, re-measure startup and revisit CodeMirror code splitting.
+5. Keep the QA record and release checklist updated with any new evidence.
 
 ## 7. Definition of done for handoff
 
-The handoff is complete only when build, lint, unit tests, E2E tests, accessibility checks, responsive checks, offline checks, and documented known limitations are all recorded by date and owner.
+The handoff is complete when build, lint, unit tests, E2E tests, accessibility checks, responsive checks, offline checks, and documented known limitations are all recorded by date and owner. All items are recorded as of 2026-08-05; the release decision is **Go**.

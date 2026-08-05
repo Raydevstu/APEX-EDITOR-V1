@@ -8,17 +8,18 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'ApexPad',
         short_name: 'ApexPad',
         description: 'Offline-first multi-tab notepad editor',
-        theme_color: '#020617',
-        background_color: '#020617',
+        theme_color: '#0E0D14',
+        background_color: '#0E0D14',
         display: 'standalone',
         icons: [
-          { src: '/pwa-192.svg', sizes: '192x192', type: 'image/svg+xml' },
-          { src: '/pwa-512.svg', sizes: '512x512', type: 'image/svg+xml' },
+          { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),

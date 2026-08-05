@@ -1,4 +1,4 @@
-export type ThemeMode = 'light' | 'dark' | 'zen'
+export type ThemeMode = 'light' | 'dark'
 
 export interface Tab {
   id: string

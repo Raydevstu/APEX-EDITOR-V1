@@ -2,9 +2,9 @@ import { useEffect, useMemo } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { json } from '@codemirror/lang-json'
 import { markdown } from '@codemirror/lang-markdown'
-import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorView } from '@codemirror/view'
 import { useEditorStore } from '../store/useEditorStore'
+import { apexThemeFor } from '../editor/apexTheme'
 
 export function EditorCanvas() {
   const { tabs, activeTabId, setContent, theme, isZenMode } = useEditorStore()
@@ -14,9 +14,10 @@ export function EditorCanvas() {
     const language = content.trim().startsWith('{') || content.trim().startsWith('[') ? [json()] : [markdown()]
     return [
       ...language,
+      apexThemeFor(theme === 'dark'),
       EditorView.contentAttributes.of({ 'aria-label': 'Note editor' }),
     ]
-  }, [content])
+  }, [content, theme])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -30,11 +31,16 @@ export function EditorCanvas() {
   const stats = { lines: content.split('\n').length, words: content.trim() ? content.trim().split(/\s+/).length : 0, chars: content.length }
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col bg-slate-950">
+    <section className="flex min-h-0 flex-1 flex-col bg-cm-bg">
       <div className="min-h-0 flex-1 overflow-hidden">
-        <CodeMirror value={content} height="100%" theme={theme === 'light' ? 'light' : oneDark} extensions={extensions} onChange={setContent} basicSetup={{ lineNumbers: !isZenMode, foldGutter: false, highlightActiveLine: true }} className="h-full text-sm" />
+        <CodeMirror value={content} height="100%" theme="none" extensions={extensions} onChange={setContent} basicSetup={{ lineNumbers: !isZenMode, foldGutter: false, highlightActiveLine: true }} className="h-full text-sm" />
       </div>
-      {!isZenMode && <footer className="flex h-8 shrink-0 items-center justify-between border-t border-slate-800 bg-slate-900/50 px-4 font-mono text-[11px] text-slate-400"><span>Lines: {stats.lines} · Words: {stats.words} · Characters: {stats.chars}</span><span>{activeTab?.id.slice(0, 8)}</span></footer>}
+      {!isZenMode && (
+        <footer className="flex h-8 shrink-0 items-center justify-between border-t border-hairline bg-surface/60 px-4 font-mono text-[11px] tabular-nums text-text-muted">
+          <span>Lines: {stats.lines} · Words: {stats.words} · Characters: {stats.chars}</span>
+          <span>{activeTab?.id.slice(0, 8)}</span>
+        </footer>
+      )}
     </section>
   )
 }

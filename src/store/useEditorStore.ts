@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { get as idbGet, set as idbSet } from 'idb-keyval'
 import type { PersistedTabsState, Snapshot, Tab, ThemeMode } from '../types/notepad'
+import { readTheme, writeTheme } from '../theme/themeStorage'
 
 interface EditorStore {
   tabs: Tab[]
@@ -51,7 +52,7 @@ export const useEditorStore = create<EditorStore>((set, get) => {
   return {
     tabs: [initialTab],
     activeTabId: initialTab.id,
-    theme: 'dark',
+    theme: readTheme(),
     isZenMode: false,
     snapshots: [],
     isSaving: false,
@@ -101,8 +102,11 @@ export const useEditorStore = create<EditorStore>((set, get) => {
       scheduleSave(tabs, activeTabId, (isSaving) => set({ isSaving }))
     },
 
-    setTheme: (theme) => set({ theme, isZenMode: theme === 'zen' }),
-    toggleZenMode: () => set((state) => ({ isZenMode: !state.isZenMode, theme: state.isZenMode ? 'dark' : 'zen' })),
+    setTheme: (theme) => {
+      writeTheme(theme)
+      set({ theme })
+    },
+    toggleZenMode: () => set((state) => ({ isZenMode: !state.isZenMode })),
 
     takeSnapshot: async () => {
       const { tabs, activeTabId, snapshots } = get()

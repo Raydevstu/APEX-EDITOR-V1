@@ -17,8 +17,9 @@ Out of scope for the current release unless separately approved: server accounts
 | State | Zustand | `src/store/useEditorStore.ts` |
 | Persistence | IndexedDB | `idb-keyval` |
 | Editor | CodeMirror | `@uiw/react-codemirror` and CodeMirror language packages |
-| Styling | Tailwind CSS | Tailwind 3 configuration |
+| Styling | Tailwind CSS | Tailwind 3 configuration driven by design tokens in `src/theme/tokens.css`; see `docs/06-design-system.md` |
 | Icons | Lucide | `lucide-react` |
+| Fonts | Bundled variable fonts | Inter Variable (UI) + JetBrains Mono Variable (editor) via `@fontsource-variable/*` |
 | Background processing | Web Worker | `src/workers/processor.worker.ts` |
 | PWA | Vite PWA plugin | Generated service worker and manifest |
 | Unit testing | Vitest | `src/**/*.test.ts` |
@@ -36,8 +37,8 @@ The store contains:
 
 - `tabs`: ordered editable tab records.
 - `activeTabId`: selected tab identifier.
-- `theme`: dark, light, or zen.
-- `isZenMode`: chrome visibility state.
+- `theme`: dark or light (persisted to `localStorage['apexpad-theme']`, applied as a `.dark` class on `<html>` before first paint).
+- `isZenMode`: chrome visibility state (independent of theme).
 - `snapshots`: bounded local snapshot history.
 - `isSaving`: debounced persistence indicator.
 - `isCommandPaletteOpen`: command surface visibility.

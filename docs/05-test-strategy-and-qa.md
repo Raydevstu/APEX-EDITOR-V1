@@ -56,13 +56,18 @@ Playwright must run only files under `e2e/` with a dedicated configuration. Requ
 |---|---|---|---|
 | Production build | Pass | `pnpm build`, 2026-08-05 | Monitor bundle warning |
 | Lint | Pass | `pnpm lint`, 2026-08-05 | None |
-| Unit tests | Pass, 24 tests / 5 files | `pnpm test`, 2026-08-05 | Add large-input tests if needed |
+| Unit tests | Pass, 24 tests / 5 files | `pnpm test`, 2026-08-05 | None |
 | Playwright config | Present | `playwright.config.ts` | None |
-| E2E browser run | Pass, 11 tests | `pnpm test:e2e`, Chromium, 2026-08-05 | Broaden browser matrix before public release |
-| Automated accessibility scan | Pass, axe WCAG A/AA | `e2e/accessibility.spec.ts`, 2026-08-05 | Scan additional dialog states over time |
+| E2E browser run | Pass, 24 tests | `pnpm test:e2e`, Chromium, 2026-08-05 | Broaden browser matrix before public release |
+| Automated accessibility scan | Pass, axe WCAG A/AA | `e2e/accessibility.spec.ts` + `accessibility-light.spec.ts`, 2026-08-05: main, palette, tools, snapshots, share, diff (dark) + main/share (light) | Scan additional dialog states over time |
+| Keyboard accessibility audit | Pass | `e2e/keyboard-a11y.spec.ts`, 2026-08-05: tab order, focus trap, Escape, focus return, modal semantics | None |
+| PWA installability | Pass | `e2e/pwa-install.spec.ts`, 2026-08-05: manifest, icons at declared sizes, SW registration, install event surfaced | None |
+| SW update lifecycle | Pass | `scripts/sw-update-rehearsal.mjs`, 2026-08-05: `reg.update()` activates new worker (autoUpdate) | None |
+| Security review | Pass | No network calls in app code; fresh IV; tamper rejection tested; `pnpm audit` clean (prod + full), 2026-08-05 | None |
+| Startup profiling | Pass | `scripts/profile.mjs`, production preview, 2026-08-05: FCP/LCP 180 ms, load 89 ms, one 65 ms long task | Keep CodeMirror; re-measure if deployed remotely |
 | Responsive browser QA | Pass, mobile smoke | 390x844 Chromium test, 2026-08-05 | Expand viewport matrix |
-| Offline browser QA | Pass, cached shell | Production preview + offline reload, 2026-08-05 | Verify install/update lifecycle |
-| Accessibility audit | Complete | Axe WCAG A/AA clean; focus management for all overlays; editor accessible name; labels; contrast fixed; manual keyboard review pending | Formal screen-reader pass on desktop/mobile |
+| Offline browser QA | Pass, cached shell | Production preview + offline reload, 2026-08-05 | None |
+| Accessibility audit | Complete | Axe WCAG A/AA clean across all surfaces in both themes; focus management; accessible names; contrast fixes landed (dark/light accent, muted/faint, `text-onAccent` class) | Formal external screen-reader pass recommended pre-announcement |
 
 ## 4. Test environment
 

@@ -87,7 +87,7 @@ describe('overlay components', () => {
     opener.focus()
     render(<ToolDrawer onClose={onClose} />)
     const dialog = screen.getByRole('dialog', { name: 'Text tools' })
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close tools' }))
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close text tools' }))
     expect(dialog.getAttribute('aria-modal')).toBe('true')
     expect(screen.getByRole('status')).toBeTruthy()
 

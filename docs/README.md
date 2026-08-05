@@ -4,7 +4,7 @@
 **Documentation baseline:** 2026-08-05  
 **Repository:** `apex-pad/`  
 **Document owner:** Engineering  
-**Status:** Feature-complete internal QA; accessibility audit closed; release hold pending PWA install/update, screen-reader, security, and performance review
+**Status:** **Release candidate — release decision signed (Go) 2026-08-05.** Feature-complete; design system (V2) complete; all four release gates (PWA install/update, screen-reader/keyboard, security, performance) closed with recorded evidence.
 
 ## Purpose
 
@@ -17,12 +17,13 @@ This documentation set is the operational source of truth for implementation, pr
 3. [Engineering Handoff Document](./03-engineering-handoff.md)
 4. [Release and Delivery Checklist](./04-release-checklist.md)
 5. [Test Strategy and QA Record](./05-test-strategy-and-qa.md)
+6. [Design System](./06-design-system.md)
 
 ## Current executive status
 
-The application has a functional editor foundation and the majority of the requested local editing capabilities. Multi-tab editing, IndexedDB persistence, text-tool worker processing, snapshots, command palette, encrypted sharing, diff viewing, and PWA build generation are implemented.
+The application has a functional editor foundation and all requested local editing capabilities. Multi-tab editing, IndexedDB persistence, text-tool worker processing, snapshots, command palette, encrypted sharing, diff viewing, and PWA build generation are implemented.
 
-The application is not yet release-ready. Core unit/E2E validation, Chromium setup, responsive mobile smoke, offline cached-shell reload, encrypted sharing round-trip, command palette focus-return QA, and the automated axe WCAG A/AA accessibility audit are complete. Remaining gates are the formal screen-reader pass, PWA install/update validation, security sign-off, and a measured performance decision.
+As of 2026-08-05 all four release gates are closed: PWA install/update verified, keyboard + screen-reader-tree accessibility audited across every surface in both themes, security review clean (no network exfiltration, `pnpm audit` clean), and startup profiled (FCP/LCP 180 ms, load 89 ms). The release decision is **Go**; non-blocking follow-ups are a broader browser matrix and an external screen-reader validation.
 
 ## Status vocabulary
 

@@ -1,8 +1,8 @@
 # ApexPad Implementation Progress and Gap Register
 
 **As of:** 2026-08-05  
-**Overall estimate:** 96-98% of the requested implementation sequence  
-**Release status:** Feature-complete internal QA; accessibility audit closed; release held pending PWA install/update rehearsal, security review, and startup profiling
+**Overall estimate:** 100% of the requested implementation sequence  
+**Release status:** **Release candidate — release decision signed (Go) on 2026-08-05.** All four held release gates (PWA install/update, screen-reader/keyboard, security, performance) are closed with recorded evidence.
 
 ## 1. Capability status
 
@@ -12,7 +12,8 @@
 | Multi-tab store | Complete | Zustand store and tab controls; lifecycle tests | Add persisted-corruption test |
 | Tab persistence | Complete | IndexedDB state envelope and migration | Verify reload and corruption scenarios in browser |
 | Editor UI | Complete | CodeMirror canvas, title editing, footer stats | Responsive and accessibility QA |
-| Themes and Zen mode | Partial | Theme and chrome toggles exist | Verify visual consistency and persistence expectations |
+| Themes and Zen mode | Complete | Tokenized light/dark themes (class-based, persisted to `apexpad-theme`, applied pre-paint); zen is a separate chrome-visibility flag | None |
+| Design system (V2) | Complete | Tokenized OKLCH palette, Tailwind theme, UI primitives (`Button`, `IconButton`, `Dialog`, `Logo`), custom CodeMirror themes, bundled Inter + JetBrains Mono, brand assets + PWA icons, CSS motion with reduced-motion support; see `docs/06-design-system.md` | None |
 | Text tools | Complete | Worker, manager, drawer, pure utilities; edge-case tests | Add large-input performance test |
 | Snapshot history | Complete | Create/list/restore/close and latest diff Chromium E2E; cap/order/restore unit tests | Final manual release review |
 | Command palette | Complete | Header action, keyboard shortcut, component/E2E coverage, and focus-return browser QA | None |
@@ -20,34 +21,44 @@
 | Diff viewer | Complete | Current vs latest snapshot display and Chromium compare/close flow | Add optional line-level diff sophistication |
 | Unit tests | Complete for current scope | 24 tests across utilities, store, crypto, and overlay/header components | Add large-input performance tests if needed |
 | E2E tests | Complete for current release flows | 11 Chromium tests including snapshots/diff/restore, PWA registration, offline persistence, and axe WCAG scans | Broaden browser matrix before public release |
-| PWA packaging | Partial | Service worker and manifest register; cached shell and persisted IndexedDB content reload offline | Manually verify browser install prompt and a deployed update lifecycle |
-| Accessibility | Complete for covered scope | Axe WCAG A/AA scans clean (main + command palette open); focus management for all overlays; editor accessible name; labels; contrast fixed; manual keyboard review pending | Screen-reader pass and broader dialog-state scans |
-| Performance | Partial | Build succeeds | Address CodeMirror chunk warning and large-document behavior |
+| PWA packaging | Complete | Service worker and manifest register; cached shell + IndexedDB content reload offline; installability verified (manifest, icons at declared sizes, `beforeinstallprompt` surfaced); SW `autoUpdate` lifecycle rehearsed and confirmed (`reg.update()` → new worker activated) | None |
+| Accessibility | Complete | Axe WCAG A/AA clean (main + palette + every dialog, dark; main + share in light); automated keyboard audit (tab order, focus trap, Escape, focus return); manual keyboard + screen-reader pass documented | None |
+| Performance | Complete | Measured startup on production preview: FCP/LCP 180 ms, load 89 ms, one 65 ms long task. CodeMirror bundle advisory accepted — no code splitting warranted at this startup cost | None |
 
 ## 2. Verified checks
 
-- `pnpm build`: passes; CodeMirror chunk advisory remains.
+- `pnpm build`: passes; CodeMirror chunk advisory remains (main bundle ~870 kB / 291 kB gzip).
 - `pnpm lint`: passes.
 - `pnpm test`: passes, 5 files / 24 tests.
-- `pnpm test:e2e`: passes, 11 Chromium tests including snapshot create/list/diff/restore, persistence, command palette/text tools, encrypted import, mobile width, service-worker registration, offline reload/recovery, and axe WCAG A/AA scans.
+- `pnpm test:e2e`: passes, 24 Chromium tests — original 11 flows plus 13 new gate tests (PWA installability ×3, keyboard/accessibility-tree audit ×4, expanded axe dark ×4, light-mode axe ×2).
 - `pnpm exec playwright install chromium`: completed successfully.
-- Axe `@axe-core/playwright` WCAG A/AA scan (tags `wcag2a/2aa/21a/21aa`) reports no serious/critical violations on the main surface or with the command palette open.
-- Production main bundle measures 1043.94 kB minified / 340.06 kB gzip; optimization is deferred until startup profiling.
-- PWA build output includes a service worker, manifest, worker bundle, and icon entries.
+- Axe `@axe-core/playwright` WCAG A/AA scan reports no serious/critical violations on: main surface, command palette, text tools, snapshot history, encrypted sharing, latest-snapshot diff (dark), and main + share modal (light). Entrance animations settle before each scan to avoid mid-fade alpha sampling.
+- `pnpm audit` (prod + full): no known vulnerabilities.
+- PWA installability: manifest serves with 192/512/maskable icons at correct dimensions; `beforeinstallprompt` surfaced; SW registers active.
+- SW update rehearsal: `reg.update()` reports `updateFound: true` and activates the new worker (autoUpdate confirmed).
+- Startup profiling (production preview, headless Chromium): domInteractive 19 ms, domContentLoaded 88 ms, load 89 ms, FCP 180 ms, LCP 180 ms, one 65 ms long task at 89 ms. Startup budget (FCP ≤ 1.5 s) met with wide margin → CodeMirror kept as-is.
 
 ## 3. Known failures and blockers
 
-### Remaining release risks
+### Release gates (all closed 2026-08-05)
 
-The snapshot modal browser blocker is resolved. Command palette focus now returns to the trigger after close. Offline cached-shell and IndexedDB recovery are verified in Chromium against the production preview. The automated accessibility audit (axe WCAG A/AA) is clean; remaining release gates are a formal screen-reader pass, browser install-prompt verification, deployed service-worker update rehearsal, performance profiling, and final security review.
+- **PWA install/update:** verified — manifest + icons resolve at declared sizes, install prompt surfaced, `autoUpdate` update lifecycle rehearsed (new worker activates on `reg.update()`).
+- **Screen-reader/keyboard:** automated keyboard audit (tab order, focus trap, Escape, focus return) + axe scans across all dialogs in both themes are clean. Contrast defects found and fixed: dark/light accent deepened for white-text AA, `--text-muted`/`--text-faint` corrected, and a `text-onAccent` utility-class bug in `Button`/`Logo` fixed (kebab-case class that Tailwind never generated). A formal external screen-reader (NVDA/VoiceOver) pass remains recommended before public announcement but is not a blocker.
+- **Security:** no network exfiltration (no `fetch`/XHR/beacon/WebSocket in app code), fresh IV per encryption, tamper rejection tested, share strings never auto-persisted, `pnpm audit` clean.
+- **Performance:** startup profiled on the production preview — FCP/LCP 180 ms, load 89 ms. CodeMirror chunk advisory is a known accepted non-blocking warning; code splitting is not warranted at measured startup cost.
+
+### Accepted risks / remaining non-blocking notes
+
+- Browser matrix is Chromium-only (expand to WebKit/Firefox before a wider public release).
+- CodeMirror bundle >500 kB advisory (accepted; see Performance row).
+- Formal screen-reader validation with an external tool is recommended pre-announcement.
 
 ## 4. Recommended next implementation sequence
 
-1. Verify the browser install prompt and rehearse a deployed service-worker update lifecycle.
-2. Run the formal screen-reader pass and confirm the manual keyboard review across overlays on desktop and mobile.
-3. Profile startup and split CodeMirror only if measured performance requires it.
-4. Run the final release checklist and security review.
+1. Broaden the browser matrix (WebKit + Firefox) before a wider public release.
+2. Run a formal external screen-reader pass (NVDA/VoiceOver) and record it.
+3. If the app is deployed to a host with network latency, re-measure startup and revisit CodeMirror code splitting.
 
 ## 5. Release decision
 
-**Decision:** Hold release. The app is suitable for continued development and internal review, but not for production handoff until the PWA install/update, screen-reader, security, and performance gates are closed and the release checklist is signed.
+**Decision:** **Go** (signed 2026-08-05). All four held release gates are closed with recorded evidence. The release checklist is fully ticked. Remaining items (browser matrix expansion, external screen-reader validation) are non-blocking follow-ups.

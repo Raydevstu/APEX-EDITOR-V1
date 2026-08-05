@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ApexPad - Review Report</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<style>
+		body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+		.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+		.report-section { border: 1px solid #222226; background: #0a0a0b; position: relative; }
+		.corner-box { position: absolute; width: 20px; height: 20px; border: 1px solid #222226; background: #000; }
+	</style>
+</head>
+<body class="bg-black text-[#fafafa]">
+	<main class="mx-auto w-full max-w-6xl px-5 py-8 md:px-10 md:py-12">
+		<header class="report-section mb-8 p-6 md:p-8">
+			<div class="corner-box left-0 top-0 -translate-x-1/2 -translate-y-1/2"></div>
+			<div class="corner-box right-0 top-0 translate-x-1/2 -translate-y-1/2"></div>
+			<div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+				<div>
+					<div class="mono mb-2 text-xs tracking-widder text-[#666]">// REVIEW</div>
+					<h1 class="text-4xl font-bold tracking-tight md:text-6xl">ApexPad</h1>
+					<p class="mt-2 text-sm text-[#a0a0a0]">Offline-first multi-tab notepad editor</p>
+				</div>
+				<div class="mono text-left text-xs text-[#666] md:text-right">
+					<div>COMMANDCODE REPORT</div>
+					<div class="text-[#444]">2026-08-05</div>
+				</div>
+			</div>
+		</header>
+
+		<section class="report-section mb-8 p-6 md:p-8">
+			<div class="corner-box left-0 top-0 -translate-x-1/2 -translate-y-1/2"></div>
+			<div class="corner-box right-0 top-0 translate-x-1/2 -translate-y-1/2"></div>
+			<div class="grid gap-8 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+				<div>
+					<div class="mono mb-2 text-xs tracking-widest text-[#666]">// OVERALL</div>
+					<div class="text-6xl font-bold tracking-tight md:text-7xl">38</div>
+					<div class="mt-1 text-lg text-[#666]"]/ 50</div>
+					<div class="mt-4 inline-flex border border-[#fbbf24]/30 bg-[#fbbf24]/10 px-3 py-1 text-sm text-[#fbbf24]">STRONG FOUNDATION, REFINEMENTS NEEDED</div>
+				</div>
+				<div>
+					<div class="mono mb-3 text-xs tracking-widest text-[#666]">// TL;DR</div>
+					<p class="text-sm leading-6 text-[#a0a0a0]">ApexPad is a mature editor interface with an excellent whisper-strategy color system in OKLCH (violet-indigo accent, brand-tinted neutrals, authored dark mode) and a well-tokenized motion system. The design earns a 38/50. Three clusters of weakness: a crowded header with seven equally-weighted icon buttons, a flat type hierarchy where the brand text is only 13px, and interaction gaps including a tiny tab-close hit target, a tool list that bypasses the shared IconButton component, and a "diff viewer" that doesn't actually diff.</p>
+					<p class="mt-4 text-sm leading-6 text-[#fbbf24]">&#92;design relayout → /design typeset → /design interaction → /design redesign (diff viewer)</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="report-section mb-8 p-6 md:p-8">
+			<div class="corner-box left-0 top-0 -translate-x-1/2 -translate-y-1/2"></div>
+			<div class="corner-box right-0 top-0 translate-x-1/2 -translate-y-1/2"></div>
+			<div class="mono mb-6 text-xs tracking-widest text-[#666]">// HEURISTIC SCORES</div>
+			<div class="overflow-x-auto">
+				<table class="w-full min-w-[720px] border-collapse text-sm">
+					<thead>
+						<tr class="border-b border-[#222226] text-left mono text-xs text-[#666]">
+							<th class="py-3 pr-4 font-normal">#</th>
+							<th class="py-3 pr-4 font-normal">LENS</th>
+							<th class="py-3 pr-4 font-normal">SCORE</th>
+							<th class="py-3 font-normal">KEY FINDING</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">1</td>
+							<td class="py-4 pr-4 text-[#fafafa]">First impression</td>
+							<td class="py-4 pr-4 text-[#fbbf24]">9/10</td>
+							<td class="py-4 text-[#a0a0a0]">Distinctive violet-indigo on near-black canvas. Dark mode authored, not inverted. Clean, clearly an editor.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">2</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Hierarchy</td>
+							<td class="py-4 pr-4 text-[#fbbf24]">7/10</td>
+							<td class="py-4 text-[#a0a0a0]">7 equally-weighted header buttons. Floating ⌘K button is disconnected. Editor is correctly primary.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">3</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Color voice</td>
+							<td class="py-4 pr-4 text-[#4ade81]">9/10</td>
+							<td class="py-4 text-[#a0a0a0]">Whisper OKLCH strategy. Non-generic hue 262. Brand-tinted neutrals. Semantic state colors.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">4</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Type voice</td>
+							<td class="py-4 pr-4 text-[#f87171]">6/10</td>
+							<td class="py-4 text-[#a0a0a0]">Flat hierarchy. Brand at 13px, tabs at 12px, footer at 11px. Scale tokens 16/18px unused.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">5</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Interaction feel</td>
+							<td class="py-4 pr-4 text-[#fbbf24]">7/10</td>
+							<td class="py-4 text-[#a0a0a0]">Good state coverage. But tab-close <44px, tool list bypasses IconButton, fake diff.</td>
+						</tr>
+						<tr class="border-t border-[#222226]">
+							<td colspan="2" class="py-4 pr-4 mono text-xs text-[#666]">TOTAL</td>
+							<td class="py-4 pr-4 text-[#fbbf24]">38/50</td>
+							<td class="py-4 text-[#a0a0a0]">Strong foundation, refinements needed</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<section class="report-section mb-8 p-6 md:p-8">
+			<div class="mono mb-6 text-xs tracking-widest text-[#666]">// COGNITIVE LOAD / RISK</div>
+			<div class="grid gap-6 md:grid-cols-2">
+				<div>
+					<div class="mb-3 text-xl font-semibold text-[#34d399]">PASS</div>
+					<ul class="space-y-3 text-sm text-[#a0a0a0]">
+						<li><span class="mono mr-2 text-[#34d399]">PASS</span>Single Dialog overlay shell reused across all modals — reduces cognitive load</li>
+						<li><span class="mono mr-2 text-[#34d399]">PASS</span>Consistent Lucide icon set throughout</li>
+						<li><span class="mono mr-2 text-[#34d399]">PASS</span>Escape closes all overlays; focus returns to opener</li>
+						<li><span class="mono mr-2 text-[#34d399]">PASS</span>Save debounce 500ms with clear visual feedback</li>
+						<li><span class="mono mr-2 text-[#34d399]">PASS</span>Zen mode cleanly hides header + tab bar</li>
+						<li><span class="mono mr-2 text-[#34d399]">PASS</span>Editor themes token-matched to design system (dark + light)</li>
+						<li><span class="mono mr-2 text-[#34d399]">PASS</span>axe WCAG A/AA scans pass on main surface and command palette</li>
+					</ul>
+				</div>
+				<div>
+					<div class="mono mb-6 text-xs tracking-widest text-[#666]">// NEXT MODES</div>
+					<div class="flex flex-wrap gap-2">
+						<span class="border border-[#333] px-3 py-1 text-sm text-[#a0a0a0]">&#92;design relayout</span>
+						<span class="border border-[#333] px-3 py-1 text-sm text-[#a0a0a0]">&#92;design typeset</span>
+						<span class="border border-[#333] px-3 py-1 text-sm text-[#a0a0a0]">&#92;design interaction</span>
+						<span class="border border-[#333] px-3 py-1 text-sm text-[#a0a0a0]">&#92;design redesign</span>
+						<span class="border border-[#333] px-3 py-1 text-sm text-[#a0a0a0]">&#92;design finish</span>
+					</div>
+					<div class="mt-8">
+						<div class="mb-3 text-xl font-semibold text-[#facc15]">WATCH</div>
+						<ul class="space-y-3 text-sm text-[#a0a0a0]">
+							<li><span class="mono mr-2 text-[#fbbf24]">WATCH</span>7 header buttons equally weighted — consider grouping</li>
+							<li><span class="mono mr-2 text-[#fbbf24]">WATCH</span>⌘K floating button duplicates command palette affordance</li>
+							<li><span class="mono mr-2 text-[#fbbf24]">WATCH</span>11px footer text at edge of readability</li>
+							<li><span class="mono mr-2 text-[#fbbf24]">WATCH</span>Tab close hit area below 44px on mobile</li>
+						</ul>
+					</div>
+					<div class="mt-8">
+						<div class="mb-3 text-xl font-semibold text-[#ef4444]">FAIL</div>
+						<ul class="space-y-3 text-sm text-[#a0a0a0]">
+							<li><span class="mono mr-2 text-[#ef4444]">FAIL</span>Tool list buttons bypass shared IconButton component</li>
+							<li><span class="mono mr-2 text-[#ef4444]">FAIL</span>Diff viewer mislabeled — parallel comparison, not a real diff</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="report-section mb-8 p-6 md:p-8">
+			<div class="mono mb-6 text-xs tracking-widest text-[#666]">// WHAT'S WORKING</div>
+			<div class="grid gap-4 md:grid-cols-2">
+				<article class="border border-[#1f1f24] p-4">
+					<h2 class="mb-2 text-sm font-semibold text-[#34d399]">Color system</h2>
+					<p class="text-sm leading-6 text-[#a0a0a0]">Whisper OKLCH strategy with violet-indigo accent (hue 262), brand-tinted neutrals (chroma &lt; 0.02), and semantic state colors. Dark mode uses lightness steps for depth; light mode uses layered shadows.</p>
+				</article>
+				<article class="border border-[#1f1f24] p-4">
+					<h2 class="mb-2 text-sm font-semibold text-[#34d399]">Dark mode depth</h2>
+					<p class="text-sm leading-6 text-[#a0a0a0]">Surfaces progress from oklch(0.135) to oklch(0.208) — authored depth, not inverted light-on-dark.</p>
+				</article>
+				<article class="border border-[#1f1f24] p-4">
+					<h2 class="mb-2 text-sm font-semibold text-[#34d399]">Motion system</h2>
+					<p class="text-sm leading-6 text-[#a0a0a0]">Tokenized durations (150ms baseline, 250ms modal, 300ms drawer), expo-out easing, transform+opacity only, reduced-motion fallback to 150ms fades.</p>
+				</article>
+				<article class="border border-[#1f1f24] p-4">
+					<h2 class="mb-2 text-sm font-semibold text-[#34d399]">Dialog shell</h2>
+					<p class="text-sm leading-6 text-[#a0a0a0]">Single reusable overlay component with backdrop blur, panel animation, Escape close, focus trap, and focus return. Used by all five modals.</p>
+				</article>
+				<article class="border border-[#1f1f24] p-4">
+					<h2 class="mb-2 text-sm font-semibold text-[#34d399]">Responsive tabs</h2>
+					<p class="text-sm leading-6 text-[#a0a0a0]">Tab bar scrolls horizontally on mobile (390px) without overflow. Layout adapts cleanly across viewport sizes.</p>
+				</article>
+				<article class="border border-[#1f1f24] p-4">
+					<h2 class="mb-2 text-sm font-semibold text-[#34d399]">Editor theming</h2>
+					<p class="text-sm leading-6 text-[#a0a0a0]">CodeMirror dark + light themes token-matched to design system. Syntax colors calibrated to canvas surfaces.</p>
+				</article>
+			</div>
+		</section>
+
+		<section class="report-section mb-8 p-6 md:p-8">
+			<div class="mono mb-6 text-xs tracking-widest text-[#666]">// PRIORITY ISSUES</div>
+			<div class="space-y-5">
+				<article class="border border-[#2a1d22] bg-[#110b0d] p-5">
+					<div class="mono mb-2 text-xs text-[#f43f5e]">P0</div>
+					<h2 class="mb-2 text-lg font-semibold text-[#fbbf24]">Header action hierarchy — seven equally-weighted buttons</h2>
+					<p class="mb-4 text-sm leading-6 text-[#a0a0a0]">Evidence: Header.tsx renders History, Tools, Share, Diff, Command Palette, Zen mode, and Theme toggle as IconButtons with identical visual weight. No grouping separates frequent actions from rare ones. Vision analysis confirms "7 icons tightly packed."</p>
+					<div class="border-l border-[#fbbf24] pl-4 text-sm leading-6 text-[#fbbf24]">FIX: &#92;design relayout — cluster actions (e.g. content actions vs. view controls) or move zen/theme behind a single overflow menu.</div>
+				</article>
+				<article class="border border-[#2a1d22] bg-[#110b0d] p-5">
+					<div class="mono mb-2 text-xs text-[#f43f5e]">P1</div>
+					<h2 class="mb-2 text-lg font-semibold text-[#fbbf24]">Diff viewer is not a real diff</h2>
+					<p class="mb-4 text-sm leading-6 text-[#a0a0a0]">Evidence: DiffViewer.tsx (line 9–12) splits both snapshot and current content into lines and renders them in parallel. No diff algorithm runs — matching lines aren't aligned, and different line counts cause every subsequent line to shift and show as "changed." Dialog title says "Latest snapshot diff" (line 19).</p>
+					<div class="border-l border-[#fbbf24] pl-4 text-sm leading-6 text-[#fbbf24]">FIX: &#92;design redesign — implement a proper diff algorithm, or rename to "Snapshot comparison" to match the actual behavior.</div>
+				</article>
+				<article class="border border-[#2a1d22] bg-[#110b0d] p-5">
+					<div class="mono mb-2 text-xs text-[#f43f5e]">P1</div>
+					<h2 class="mb-2 text-lg font-semibold text-[#fbbf24]">Tab close button is a touch-target risk</h2>
+					<p class="mb-4 text-sm leading-6 text-[#a0a0a0]">Evidence: TabBar.tsx (line 24) close button is p-1 with a 13px X icon — no enlarged hit area. IconButton has a ::before pseudo-element expanding to 44px+, but the tab close button doesn't use that pattern.</p>
+					<div class="border-l border-[#fbbf24] pl-4 text-sm leading-6 text-[#fbbf24]">FIX: &#92;design interaction — apply same hit-area enlargement as IconButton, or use IconButton for tab close.</div>
+				</article>
+				<article class="border border-[#2a1d22] bg-[#110b0d] p-5">
+					<div class="mono mb-2 text-xs text-[#f43f5e]">P2</div>
+					<h2 class="mb-2 text-lg font-semibold text-[#fbbf24]">ToolDrawer bypasses shared IconButton</h2>
+					<p class="mb-4 text-sm leading-6 text-[#a0a0a0]">Evidence: ToolDrawer.tsx (lines 25–32) renders tool list items as plain &lt;button&gt; elements with manual classes, not the shared IconButton component. They lack the ::before hit-area expansion and touch-manipulation class.</p>
+					<div class="border-l border-[#fbbf24] pl-4 text-sm leading-6 text-[#fbbf24]">FIX: &#92;design interaction — use shared IconButton or apply the same hit-area treatment for consistency.</div>
+				</article>
+				<article class="border border-[#2a1d22] bg-[#110b0d] p-5">
+					<div class="mono mb-2 text-xs text-[#f43f5e]">P2</div>
+					<h2 class="mb-2 text-lg font-semibold text-[#fbbf24]">⌘K commands button is disconnected</h2>
+					<p class="mb-4 text-sm leading-6 text-[#a0a0a0]">Evidence: App.tsx line 56 — fixed bottom-right z-10, no custom focus ring, no active state. Duplicates the command palette button already in the header (Terminal icon). On small screens it overlaps content.</p>
+					<div class="border-l border-[#fbbf24] pl-4 text-sm leading-6 text-[#fbbf24]">FIX: &#92;design relayout — remove (header already has command palette) or integrate into header.</div>
+				</article>
+				<article class="border border-[#2a1d22] bg-[#110b0d] p-5">
+					<div class="mono mb-2 text-xs text-[#f43f5e]">P2</div>
+					<h2 class="mb-2 text-lg font-semibold text-[#fbbf24]">Flat type hierarchy</h2>
+					<p class="mb-4 text-sm leading-6 text-[#a0a0a0]">Evidence: Brand "ApexPad" at 13px (Header.tsx line 38), tab labels at 12px, footer stats at 11px. The lg (16px) and xl (18px) tokens in tailwind.config.js are unused. No clear primary/secondary/tertiary text distinction.</p>
+					<div class="border-l border-[#fbbf24] pl-4 text-sm leading-6 text-[#fbbf24]">FIX: &#92;design typeset — enlarge brand text, use defined type scale for hierarchy.</div>
+				</article>
+			</div>
+		</section>
+
+		<footer class="mono py-8 text-center text-xs tracking-widest text-[#444]">
+			Generated with CommandCode — 2026-08-05
+		</footer>
+	</main>
+</body>
+</html>

@@ -1,30 +1,65 @@
-import { FilePlus2, History, Search, Wrench, X } from 'lucide-react'
-import { useLayoutEffect, useRef, useState, type RefObject } from 'react'
+import { FilePlus2, History, Search, Wrench } from 'lucide-react'
+import { useState, type RefObject } from 'react'
 import { useEditorStore } from '../store/useEditorStore'
+import { Dialog } from '../ui/Dialog'
 
 export function CommandPalette({ onTools, onSnapshots, returnFocusRef }: { onTools: () => void; onSnapshots: () => void; returnFocusRef?: RefObject<HTMLElement | null> }) {
   const [query, setQuery] = useState('')
   const addTab = useEditorStore((state) => state.addTab)
   const setOpen = useEditorStore((state) => state.setCommandPaletteOpen)
-  const dialogRef = useRef<HTMLElement>(null)
-  const commands = [{ label: 'New note', icon: FilePlus2, action: addTab }, { label: 'Open text tools', icon: Wrench, action: onTools }, { label: 'Open snapshots', icon: History, action: onSnapshots }]
+  const commands = [
+    { label: 'New note', hint: 'Ctrl+T', icon: FilePlus2, action: addTab },
+    { label: 'Open text tools', hint: '', icon: Wrench, action: onTools },
+    { label: 'Open snapshots', hint: '', icon: History, action: onSnapshots },
+  ]
   const filtered = commands.filter((command) => command.label.toLowerCase().includes(query.toLowerCase()))
-  useLayoutEffect(() => {
-    const returnFocusTarget = returnFocusRef?.current ?? null
-    const handle = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
-      if (event.key !== 'Tab' || !dialogRef.current) return
-      const focusable = [...dialogRef.current.querySelectorAll<HTMLElement>('input, button')].filter((item) => !item.hasAttribute('disabled'))
-      const index = focusable.indexOf(document.activeElement as HTMLElement)
-      event.preventDefault()
-      focusable[(index + (event.shiftKey ? -1 : 1) + focusable.length) % focusable.length].focus()
-    }
-    window.addEventListener('keydown', handle)
-    dialogRef.current?.querySelector<HTMLElement>('input')?.focus()
-    return () => {
-      window.removeEventListener('keydown', handle)
-      window.setTimeout(() => returnFocusTarget?.focus(), 0)
-    }
-  }, [setOpen, returnFocusRef])
-  return <div className="fixed inset-0 z-40 bg-slate-950/60 p-4" role="dialog" aria-modal="true" aria-label="Command palette" onMouseDown={() => setOpen(false)}><section ref={dialogRef} className="mx-auto mt-20 max-w-lg overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl" onMouseDown={(event) => event.stopPropagation()}><div className="flex items-center gap-2 border-b border-slate-800 px-4"><Search size={16} className="text-slate-400" /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Type a command..." aria-label="Search commands" className="h-12 flex-1 bg-transparent text-sm outline-none" /><button onClick={() => setOpen(false)} aria-label="Close command palette"><X size={16} /></button></div><div className="p-2">{filtered.map(({ label, icon: Icon, action }) => <button key={label} onClick={() => { action(); setOpen(false) }} className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white">{<Icon size={16} />}{label}</button>)}</div></section></div>
+
+  const run = (action: () => void) => {
+    // Restore focus to whatever opened the palette before closing.
+    const target = returnFocusRef?.current ?? null
+    setOpen(false)
+    action()
+    if (target) window.setTimeout(() => target.focus(), 0)
+  }
+
+  return (
+    <Dialog
+      open
+      onClose={() => setOpen(false)}
+      title="Command palette"
+      titleId="command-palette-title"
+      placement="top"
+      maxWidth="max-w-lg"
+      closeLabel="Close commands"
+    >
+      <div className="flex items-center gap-2 border-b border-hairline px-4">
+        <Search size={16} className="text-text-muted" aria-hidden="true" />
+        <input
+          autoFocus
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Type a command…"
+          aria-label="Search commands"
+          className="h-12 flex-1 bg-transparent text-sm outline-none placeholder:text-text-faint"
+        />
+      </div>
+      <div className="p-2">
+        {filtered.length === 0 ? (
+          <p className="px-3 py-6 text-center text-sm text-text-muted">No commands match “{query}”.</p>
+        ) : (
+          filtered.map(({ label, hint, icon: Icon, action }) => (
+            <button
+              key={label}
+              onClick={() => run(action)}
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-text-secondary transition-colors duration-150 hover:bg-surfaceHover hover:text-text-primary focus-visible:bg-surfaceHover"
+            >
+              <Icon size={16} aria-hidden="true" className="text-text-muted" />
+              <span className="flex-1 text-left">{label}</span>
+              {hint && <kbd className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[10px] text-text-muted">{hint}</kbd>}
+            </button>
+          ))
+        )}
+      </div>
+    </Dialog>
+  )
 }
