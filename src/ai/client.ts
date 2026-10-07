@@ -1,4 +1,4 @@
-import type { AiChatMessage, AiSettings } from './types'
+import type { AiChatMessage, ResolvedAiSettings } from './types'
 
 export class AiClientError extends Error {
   readonly status?: number
@@ -19,9 +19,11 @@ interface ChatCompletionResponse {
  * Minimal SpaceXAI / xAI chat-completions client (OpenAI-compatible).
  * Uses fetch only — no SDK — so the offline-first SPA stays dependency-light.
  * Calls are user-initiated; core editing never requires this path.
+ *
+ * Caller must pass a resolved key (from resolveAiSettingsForClient). Never load secrets here.
  */
 export async function completeChat(
-  settings: AiSettings,
+  settings: ResolvedAiSettings,
   messages: AiChatMessage[],
   options?: { temperature?: number; maxTokens?: number; signal?: AbortSignal },
 ): Promise<string> {
@@ -34,7 +36,7 @@ export async function completeChat(
   const apiKey = settings.apiKey.trim() || (isLocal ? 'ollama' : '')
   if (!apiKey) {
     throw new AiClientError(
-      'Add an API key in AI settings. For free cloud: use the Groq preset. For local: use the Ollama preset and Save.',
+      'Add an API key in AI settings (stored in Vault). For free cloud: use the Groq preset. For local: use the Ollama preset and Save.',
     )
   }
 
@@ -44,7 +46,7 @@ export async function completeChat(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: "Bearer " + apiKey,
       },
       body: JSON.stringify({
         model,
@@ -76,7 +78,7 @@ export async function completeChat(
   if (!response.ok) {
     const detail = body.error?.message?.trim() || rawText.slice(0, 280).trim()
     if (response.status === 401) {
-      throw new AiClientError(detail || 'API key rejected. Check AI settings.', 401)
+      throw new AiClientError(detail || 'API key rejected. Check AI settings / vault secret.', 401)
     }
     if (response.status === 429) {
       throw new AiClientError(detail || 'Rate limited by the AI provider. Try again shortly.', 429)
