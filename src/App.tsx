@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { EditorCanvas } from './components/EditorCanvas'
 import { Header } from './components/Header'
 import { TabBar } from './components/TabBar'
+import { VaultSidebar } from './components/VaultSidebar'
 import { useEditorStore } from './store/useEditorStore'
 import { SnapshotModal } from './components/SnapshotModal'
 import { ToolDrawer } from './components/ToolDrawer'
@@ -11,10 +12,12 @@ import { DiffViewer } from './components/DiffViewer'
 
 function App() {
   const loadPersistentState = useEditorStore((state) => state.loadPersistentState)
+  const isZenMode = useEditorStore((state) => state.isZenMode)
   const [showSnapshots, setShowSnapshots] = useState(false)
   const [showTools, setShowTools] = useState(false)
   const [showShare, setShowShare] = useState(false)
   const [showDiff, setShowDiff] = useState(false)
+  const [vaultOpen, setVaultOpen] = useState(false)
   const isCommandPaletteOpen = useEditorStore((state) => state.isCommandPaletteOpen)
   const setCommandPaletteOpen = useEditorStore((state) => state.setCommandPaletteOpen)
   const commandPaletteReturnFocusRef = useRef<HTMLElement | null>(null)
@@ -41,8 +44,25 @@ function App() {
   return (
     <main className="flex h-screen min-h-0 flex-col overflow-hidden bg-slate-950 text-slate-100">
       <Header onSnapshot={() => setShowSnapshots(true)} onTools={() => setShowTools(true)} onShare={() => setShowShare(true)} onDiff={() => setShowDiff(true)} onCommandPalette={openCommandPalette} />
-      <TabBar />
-      <EditorCanvas />
+      <div className="flex min-h-0 flex-1">
+        {!isZenMode && <VaultSidebar className="hidden w-64 md:flex" />}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          {!isZenMode && (
+            <div className="flex h-9 items-center border-b border-slate-800 px-2 md:hidden">
+              <button className="rounded px-2 py-1 text-xs text-slate-300 hover:bg-slate-800" onClick={() => setVaultOpen(true)}>Vault</button>
+            </div>
+          )}
+          <TabBar />
+          <EditorCanvas />
+        </div>
+      </div>
+      {!isZenMode && vaultOpen && (
+        <div className="fixed inset-0 z-20 bg-slate-950/60 md:hidden" onMouseDown={() => setVaultOpen(false)}>
+          <div className="h-full w-72 max-w-full" onMouseDown={(event) => event.stopPropagation()}>
+            <VaultSidebar className="flex w-full" onClose={() => setVaultOpen(false)} />
+          </div>
+        </div>
+      )}
       {showTools && <ToolDrawer onClose={() => setShowTools(false)} />}
       {showSnapshots && <SnapshotModal onClose={() => setShowSnapshots(false)} />}
       {showShare && <ShareModal onClose={() => setShowShare(false)} />}
