@@ -1,10 +1,23 @@
 import { create } from 'zustand'
 import { get as idbGet, set as idbSet } from 'idb-keyval'
 import type { PersistedTabsState, Snapshot, Tab, ThemeMode } from '../types/notepad'
+import { ROOT_FOLDER_ID, VAULT_STORAGE_KEY, type Folder, type Note, type VaultPersisted } from '../types/vault'
+import {
+  createNoteRecord,
+  ensureFolders,
+  isVault,
+  mergeOpenTabs,
+  noteFromTab,
+  noteToTab,
+  openTabsFromVault,
+  tabsToVault,
+} from '../vault/model'
 
 interface EditorStore {
   tabs: Tab[]
   activeTabId: string
+  notes: Note[]
+  folders: Folder[]
   theme: ThemeMode
   isZenMode: boolean
   snapshots: Snapshot[]
@@ -21,21 +34,21 @@ interface EditorStore {
   takeSnapshot: () => Promise<void>
   restoreSnapshot: (id: string) => void
   loadPersistentState: () => Promise<void>
+  createNote: (folderId?: string | null) => void
+  openNote: (id: string) => void
+  deleteNote: (id: string) => void
+  moveNote: (id: string, folderId: string | null) => void
+  createFolder: (name: string, parentId?: string | null) => void
+  renameFolder: (id: string, name: string) => void
 }
 
-const createId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
-const createTab = (title = 'Untitled Note'): Tab => ({ id: createId(), title, content: '', updatedAt: Date.now() })
+const TABS_KEY = 'apex_tabs_state'
+const SNAPSHOTS_KEY = 'apex_snapshots'
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined
 
-const scheduleSave = (tabs: Tab[], activeTabId: string, setSaving: (saving: boolean) => void) => {
-  if (saveTimer) clearTimeout(saveTimer)
-  setSaving(true)
-  saveTimer = setTimeout(async () => {
-    await idbSet('apex_tabs_state', { version: 1, tabs, activeTabId } satisfies PersistedTabsState)
-    setSaving(false)
-  }, 500)
-}
+const notesOf = (notes: Note[] | undefined) => notes ?? []
+const foldersOf = (folders: Folder[] | undefined) => ensureFolders(folders)
 
 const isTab = (value: unknown): value is Tab => {
   if (!value || typeof value !== 'object') return false
@@ -45,12 +58,55 @@ const isTab = (value: unknown): value is Tab => {
 
 const validTabs = (value: unknown): Tab[] => Array.isArray(value) ? value.filter(isTab) : []
 
+const scheduleSave = (
+  payload: { tabs: Tab[]; activeTabId: string; notes: Note[]; folders: Folder[] },
+  setSaving: (saving: boolean) => void,
+) => {
+  if (saveTimer) clearTimeout(saveTimer)
+  setSaving(true)
+  saveTimer = setTimeout(async () => {
+    const notes = mergeOpenTabs(payload.notes, payload.tabs)
+    const vault: VaultPersisted = {
+      version: 1,
+      folders: ensureFolders(payload.folders),
+      notes,
+      openNoteIds: payload.tabs.map((tab) => tab.id),
+      activeNoteId: payload.activeTabId,
+    }
+    await idbSet(TABS_KEY, { version: 1, tabs: payload.tabs, activeTabId: payload.activeTabId } satisfies PersistedTabsState)
+    await idbSet(VAULT_STORAGE_KEY, vault)
+    setSaving(false)
+  }, 500)
+}
+
 export const useEditorStore = create<EditorStore>((set, get) => {
-  const initialTab = createTab()
+  const initialNote = createNoteRecord()
+  const initialTab = noteToTab(initialNote)
+
+  const persist = (next: { tabs: Tab[]; activeTabId: string; notes: Note[]; folders: Folder[] }) => {
+    set(next)
+    scheduleSave(next, (isSaving) => set({ isSaving }))
+  }
+
+  const patchActive = (patch: Partial<Pick<Tab, 'title' | 'content'>>) => {
+    const activeTabId = get().activeTabId
+    const updatedAt = Date.now()
+    const tabs = get().tabs.map((tab) => tab.id === activeTabId ? { ...tab, ...patch, updatedAt } : tab)
+    const active = tabs.find((tab) => tab.id === activeTabId)
+    const notes = notesOf(get().notes)
+    const nextNotes = active
+      ? (notes.some((note) => note.id === active.id)
+        ? notes.map((note) => note.id === active.id ? { ...note, title: active.title, content: active.content, updatedAt } : note)
+        : [...notes, noteFromTab(active)])
+      : notes
+    persist({ tabs, activeTabId, notes: nextNotes, folders: foldersOf(get().folders) })
+  }
 
   return {
     tabs: [initialTab],
     activeTabId: initialTab.id,
+    notes: [initialNote],
+    folders: ensureFolders([]),
     theme: 'dark',
     isZenMode: false,
     snapshots: [],
@@ -58,11 +114,24 @@ export const useEditorStore = create<EditorStore>((set, get) => {
     isCommandPaletteOpen: false,
     setCommandPaletteOpen: (isCommandPaletteOpen) => set({ isCommandPaletteOpen }),
 
-    addTab: () => {
-      const tab = createTab()
-      const tabs = [...get().tabs, tab]
-      set({ tabs, activeTabId: tab.id })
-      scheduleSave(tabs, tab.id, (isSaving) => set({ isSaving }))
+    addTab: () => get().createNote(ROOT_FOLDER_ID),
+
+    createNote: (folderId = ROOT_FOLDER_ID) => {
+      const note = createNoteRecord('Untitled Note', folderId)
+      const tabs = [...get().tabs, noteToTab(note)]
+      persist({
+        tabs,
+        activeTabId: note.id,
+        notes: [...notesOf(get().notes), note],
+        folders: foldersOf(get().folders),
+      })
+    },
+
+    openNote: (id) => {
+      const note = notesOf(get().notes).find((item) => item.id === id)
+      if (!note) return
+      const tabs = get().tabs.some((tab) => tab.id === id) ? get().tabs : [...get().tabs, noteToTab(note)]
+      persist({ tabs, activeTabId: id, notes: notesOf(get().notes), folders: foldersOf(get().folders) })
     },
 
     closeTab: (id) => {
@@ -71,35 +140,62 @@ export const useEditorStore = create<EditorStore>((set, get) => {
       if (index < 0) return
 
       let tabs = state.tabs.filter((tab) => tab.id !== id)
-      if (tabs.length === 0) tabs = [createTab()]
+      let notes = notesOf(state.notes)
+      if (tabs.length === 0) {
+        const note = createNoteRecord()
+        notes = [...notes, note]
+        tabs = [noteToTab(note)]
+      }
 
       const activeTabId = state.activeTabId === id
         ? tabs[Math.min(index, tabs.length - 1)].id
         : state.activeTabId
+      persist({ tabs, activeTabId, notes, folders: foldersOf(state.folders) })
+    },
 
-      set({ tabs, activeTabId })
-      scheduleSave(tabs, activeTabId, (isSaving) => set({ isSaving }))
+    deleteNote: (id) => {
+      let notes = notesOf(get().notes).filter((note) => note.id !== id)
+      let tabs = get().tabs.filter((tab) => tab.id !== id)
+      if (notes.length === 0) {
+        const note = createNoteRecord()
+        notes = [note]
+        tabs = [noteToTab(note)]
+      } else if (tabs.length === 0) {
+        tabs = [noteToTab(notes[0])]
+      }
+      const activeTabId = tabs.some((tab) => tab.id === get().activeTabId) ? get().activeTabId : tabs[0].id
+      persist({ tabs, activeTabId, notes, folders: foldersOf(get().folders) })
+    },
+
+    moveNote: (id, folderId) => {
+      const notes = notesOf(get().notes).map((note) => note.id === id ? { ...note, folderId, updatedAt: Date.now() } : note)
+      persist({ tabs: get().tabs, activeTabId: get().activeTabId, notes, folders: foldersOf(get().folders) })
+    },
+
+    createFolder: (name, parentId = ROOT_FOLDER_ID) => {
+      const folder: Folder = { id: createNoteRecord().id, name: name.trim() || 'New folder', parentId }
+      persist({
+        tabs: get().tabs,
+        activeTabId: get().activeTabId,
+        notes: notesOf(get().notes),
+        folders: [...foldersOf(get().folders), folder],
+      })
+    },
+
+    renameFolder: (id, name) => {
+      const trimmed = name.trim()
+      if (!trimmed || id === ROOT_FOLDER_ID) return
+      const folders = foldersOf(get().folders).map((folder) => folder.id === id ? { ...folder, name: trimmed } : folder)
+      persist({ tabs: get().tabs, activeTabId: get().activeTabId, notes: notesOf(get().notes), folders })
     },
 
     setActiveTab: (activeTabId) => {
       if (!get().tabs.some((tab) => tab.id === activeTabId)) return
-      set({ activeTabId })
-      scheduleSave(get().tabs, activeTabId, (isSaving) => set({ isSaving }))
+      persist({ tabs: get().tabs, activeTabId, notes: notesOf(get().notes), folders: foldersOf(get().folders) })
     },
 
-    setContent: (content) => {
-      const activeTabId = get().activeTabId
-      const tabs = get().tabs.map((tab) => tab.id === activeTabId ? { ...tab, content, updatedAt: Date.now() } : tab)
-      set({ tabs })
-      scheduleSave(tabs, activeTabId, (isSaving) => set({ isSaving }))
-    },
-
-    setTitle: (title) => {
-      const activeTabId = get().activeTabId
-      const tabs = get().tabs.map((tab) => tab.id === activeTabId ? { ...tab, title, updatedAt: Date.now() } : tab)
-      set({ tabs })
-      scheduleSave(tabs, activeTabId, (isSaving) => set({ isSaving }))
-    },
+    setContent: (content) => patchActive({ content }),
+    setTitle: (title) => patchActive({ title }),
 
     setTheme: (theme) => set({ theme, isZenMode: theme === 'zen' }),
     toggleZenMode: () => set((state) => ({ isZenMode: !state.isZenMode, theme: state.isZenMode ? 'dark' : 'zen' })),
@@ -108,10 +204,10 @@ export const useEditorStore = create<EditorStore>((set, get) => {
       const { tabs, activeTabId, snapshots } = get()
       const activeTab = tabs.find((tab) => tab.id === activeTabId)
       if (!activeTab || !activeTab.content.trim()) return
-      const snapshot: Snapshot = { id: createId(), tabId: activeTab.id, timestamp: Date.now(), content: activeTab.content, title: activeTab.title }
+      const snapshot: Snapshot = { id: createNoteRecord().id, tabId: activeTab.id, timestamp: Date.now(), content: activeTab.content, title: activeTab.title }
       const updated = [snapshot, ...snapshots].slice(0, 50)
       set({ snapshots: updated })
-      await idbSet('apex_snapshots', updated)
+      await idbSet(SNAPSHOTS_KEY, updated)
     },
 
     restoreSnapshot: (id) => {
@@ -122,24 +218,43 @@ export const useEditorStore = create<EditorStore>((set, get) => {
     },
 
     loadPersistentState: async () => {
-      const [savedState, savedSnapshots, legacyDoc] = await Promise.all([
-        idbGet<Partial<PersistedTabsState>>('apex_tabs_state'),
-        idbGet<Snapshot[]>('apex_snapshots'),
+      const [savedVault, savedState, savedSnapshots, legacyDoc] = await Promise.all([
+        idbGet<unknown>(VAULT_STORAGE_KEY),
+        idbGet<Partial<PersistedTabsState>>(TABS_KEY),
+        idbGet<Snapshot[]>(SNAPSHOTS_KEY),
         idbGet<{ content?: string; title?: string }>('apex_active_doc'),
       ])
+      const snapshots = Array.isArray(savedSnapshots) ? savedSnapshots : []
+
+      if (isVault(savedVault) && savedVault.notes.length > 0) {
+        const opened = openTabsFromVault(savedVault)
+        set({
+          notes: savedVault.notes,
+          folders: ensureFolders(savedVault.folders),
+          tabs: opened.tabs,
+          activeTabId: opened.activeTabId,
+          snapshots,
+        })
+        return
+      }
 
       const tabs = validTabs(savedState?.tabs)
       if (tabs.length > 0) {
         const activeTabId = tabs.some((tab) => tab.id === savedState?.activeTabId) ? savedState!.activeTabId! : tabs[0].id
-        set({ tabs, activeTabId, snapshots: Array.isArray(savedSnapshots) ? savedSnapshots : [] })
+        const vault = tabsToVault(tabs, activeTabId)
+        set({ notes: vault.notes, folders: vault.folders, tabs, activeTabId, snapshots })
+        await idbSet(VAULT_STORAGE_KEY, vault)
         return
       }
 
       const migrated = legacyDoc && (legacyDoc.content || legacyDoc.title)
-        ? [{ ...createTab(legacyDoc.title || 'Untitled Note'), content: legacyDoc.content || '' }]
-        : [createTab()]
-      set({ tabs: migrated, activeTabId: migrated[0].id, snapshots: Array.isArray(savedSnapshots) ? savedSnapshots : [] })
-      await idbSet('apex_tabs_state', { version: 1, tabs: migrated, activeTabId: migrated[0].id } satisfies PersistedTabsState)
+        ? [{ ...noteToTab(createNoteRecord(legacyDoc.title || 'Untitled Note')), content: legacyDoc.content || '', title: legacyDoc.title || 'Untitled Note' }]
+        : [noteToTab(createNoteRecord())]
+      const activeTabId = migrated[0].id
+      const vault = tabsToVault(migrated, activeTabId)
+      set({ notes: vault.notes, folders: vault.folders, tabs: migrated, activeTabId, snapshots })
+      await idbSet(TABS_KEY, { version: 1, tabs: migrated, activeTabId } satisfies PersistedTabsState)
+      await idbSet(VAULT_STORAGE_KEY, vault)
     },
   }
 })
