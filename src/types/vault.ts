@@ -1,5 +1,3 @@
-import type { Tab } from './notepad'
-
 export const ROOT_FOLDER_ID = 'root'
 export const VAULT_STORAGE_KEY = 'apex_vault_state'
 
@@ -25,10 +23,3 @@ export interface VaultPersisted {
   openNoteIds: string[]
   activeNoteId: string
 }
-
-export const noteToTab = (note: Note): Tab => ({
-  id: note.id,
-  title: note.title,
-  content: note.content,
-  updatedAt: note.updatedAt,
-})
